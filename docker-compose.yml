@@ -1,0 +1,30 @@
+version: '2'
+
+services:
+  redis:
+    build: .
+    restart: always
+    hostname: redis
+    container_name: redis
+    expose:
+      - "6379"
+    ports:
+      - "6379:6379"
+
+  newrelic:
+    image: newrelic/nrsysmond:latest
+    restart: always
+    privileged: true
+    hostname: newrelic
+    container_name: newrelic
+    pid: "host"
+    network_mode: "host"
+    volumes:
+      - /sys:/sys
+      - /dev:/dev
+      - /var/log:/var/log:rw
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - NRSYSMOND_license_key=${NEWRELIC_LICENSE}
+      - NRSYSMOND_logfile=/var/log/nrsysmond.log
+
