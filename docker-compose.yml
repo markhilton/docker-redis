@@ -4,6 +4,10 @@ services:
   redis:
     build: .
     restart: always
+    logging:
+      driver: "gcplogs"
+      options:
+        gcp-log-cmd: "true"
     hostname: redis
     container_name: redis
     expose:
@@ -11,11 +15,27 @@ services:
     ports:
       - "6379:6379"
 
+  memcached:
+    image: memcached
+    restart: always
+    logging:
+      driver: "gcplogs"
+      options:
+        gcp-log-cmd: "true"
+    environment:
+      # Memcached memory limit in megabytes
+      - MEMCACHED_MEMORY_LIMIT=1024
+    expose:
+      - "11211"
+    ports:
+      - "11211:11211"
+    container_name: memcached
+
   newrelic:
     image: newrelic/nrsysmond:latest
     restart: always
     privileged: true
-    hostname: newrelic
+    hostname: redis
     container_name: newrelic
     pid: "host"
     network_mode: "host"
@@ -24,6 +44,7 @@ services:
       - /dev:/dev
       - /var/log:/var/log:rw
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
     environment:
       - NRSYSMOND_license_key=${NEWRELIC_LICENSE}
       - NRSYSMOND_logfile=/var/log/nrsysmond.log
